@@ -1,0 +1,12 @@
+Here is the text from site where startup are advertised for sale. Extract the following entries and Generate Markup page
+- Brief Description
+- Features
+- Asking price
+- TTM revenew
+- TTM Profit
+- Last Month Revenue
+- Last Month Profit
+- Customers
+
+Text:
+{{text}}
