@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 import sys
 import os
 import asyncio
+import time
+import random
 from urllib.parse import urlparse
 from web_browser import scrape_with_selenium
 
@@ -70,6 +72,7 @@ def main():
 
     # Ensure output directory exists (don't delete to preserve cache)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+    os.makedirs("generated", exist_ok=True)
 
     input_file = sys.argv[1]
     max_links = int(sys.argv[2]) if len(sys.argv) > 2 else 2
@@ -81,11 +84,20 @@ def main():
 
     if startup_links:
         for i, link in enumerate(startup_links[:max_links]):
-            scrape_startup(link)
+            full_url = BASE_URL + link
+            unique_id = extract_startup_id_from_url(full_url)
+            output_filename = get_output_filepath(unique_id)
+            if os.path.exists(output_filename):
+                print(f"Cache found for {full_url}, skipping scrape")
+            else:
+                delay = random.uniform(5, 12)
+                print(f"Sleeping for {delay:.1f} seconds to simulate human browsing...")
+                time.sleep(delay)
+                scrape_startup(link)
     else:
         print("No startup links found in the HTML file.")
 
-    #run_extract_info_for_scraped_files()
+    run_extract_info_for_scraped_files()
     merge_markdown_files()
 
 
