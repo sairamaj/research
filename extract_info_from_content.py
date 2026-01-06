@@ -1,5 +1,6 @@
 import asyncio
 import os
+import random
 from dotenv import load_dotenv
 from agents import Agent, OpenAIChatCompletionsModel, Runner, trace
 from openai import AsyncOpenAI, OpenAI
@@ -18,8 +19,27 @@ def load_prompt_with_content(content, prompt_filepath="prompt.txt"):
         prompt_template = f.read()
     return prompt_template.replace("{content}", content)
 
-async def extract_info_from_content(content):
-    """Extract information from a webpage."""
+async def extract_info_from_content(content, use_real_llm=False):
+    """
+    Extract information from a webpage.
+    
+    Args:
+        content: HTML content to extract information from
+        use_real_llm: If True, use real LLM API. If False, return mock response (default: False)
+    
+    Returns:
+        Extracted information (either from LLM or mock)
+    """
+    if not use_real_llm:
+        # Return mock response for testing without incurring LLM costs
+        print("Using mock LLM response (use --use-real-llm flag for real API calls)")
+
+        await asyncio.sleep(random.uniform(3, 6))  # Simulate some random delay
+        mock_response = type('MockResponse', (), {
+            'final_output': f"# Mock Extracted Information\n\nThis is a mock response for testing purposes.\n\nContent length: {len(content)} characters.\n\nTo get real LLM extraction, use the --use-real-llm flag."
+        })()
+        return mock_response
+    
     gemini_client = AsyncOpenAI(base_url=GEMINI_BASE_URL, api_key=GEMINI_API_KEY)
     gemini_model = OpenAIChatCompletionsModel(model="gemini-3-flash-preview", openai_client=gemini_client)
     prompt = load_prompt_with_content(content)
@@ -33,8 +53,15 @@ async def extract_info_from_content(content):
     runner = Runner()
     return await runner.run(agent,"generate the markup page")
 
-async def process_file(input_filepath, output_dir="generated"):
-    """Process a single HTML file and save the extracted info to the generated directory."""
+async def process_file(input_filepath, output_dir="generated", use_real_llm=False):
+    """
+    Process a single HTML file and save the extracted info to the generated directory.
+    
+    Args:
+        input_filepath: Path to the input HTML file
+        output_dir: Directory to save the output markdown file
+        use_real_llm: If True, use real LLM API. If False, use mock (default: False)
+    """
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
     
@@ -44,7 +71,7 @@ async def process_file(input_filepath, output_dir="generated"):
     
     # Extract information
     print(f"Processing {input_filepath}...")
-    extracted_info = await extract_info_from_content(content)
+    extracted_info = await extract_info_from_content(content, use_real_llm=use_real_llm)
     
     # Generate output filename (replace .html with .md)
     input_filename = os.path.basename(input_filepath)
@@ -59,8 +86,10 @@ async def process_file(input_filepath, output_dir="generated"):
 
 async def main():
     """Process all HTML files in the output directory."""
+    import sys
     output_dir = "output"
     generated_dir = "generated"
+    use_real_llm = "--use-real-llm" in sys.argv
     
     # Get all HTML files in the output directory
     html_files = [
@@ -77,7 +106,7 @@ async def main():
     
     # Process each file
     for html_file in html_files:
-        await process_file(html_file, generated_dir)
+        await process_file(html_file, generated_dir, use_real_llm=use_real_llm)
     
     print(f"\nAll files processed. Results saved to {generated_dir} directory.")
 
