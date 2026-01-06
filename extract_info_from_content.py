@@ -33,11 +33,53 @@ async def extract_info_from_content(content):
     runner = Runner()
     return await runner.run(agent,"generate the markup page")
 
-async def main():
-    with open("output/vfSZGGC6Tdcm31CLnSZu9bRulbJ3.html", "r", encoding="utf-8") as f:
+async def process_file(input_filepath, output_dir="generated"):
+    """Process a single HTML file and save the extracted info to the generated directory."""
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Read the HTML content
+    with open(input_filepath, "r", encoding="utf-8") as f:
         content = f.read()
+    
+    # Extract information
+    print(f"Processing {input_filepath}...")
     extracted_info = await extract_info_from_content(content)
-    with open("test.MD", "w", encoding="utf-8") as fout:
+    
+    # Generate output filename (replace .html with .md)
+    input_filename = os.path.basename(input_filepath)
+    output_filename = os.path.splitext(input_filename)[0] + ".md"
+    output_filepath = os.path.join(output_dir, output_filename)
+    
+    # Write the extracted info to the output file
+    with open(output_filepath, "w", encoding="utf-8") as fout:
         fout.write(extracted_info.final_output if hasattr(extracted_info, "final_output") else str(extracted_info))
+    
+    print(f"Generated {output_filepath}")
+
+async def main():
+    """Process all HTML files in the output directory."""
+    output_dir = "output"
+    generated_dir = "generated"
+    
+    # Get all HTML files in the output directory
+    html_files = [
+        os.path.join(output_dir, f)
+        for f in os.listdir(output_dir)
+        if f.endswith(".html")
+    ]
+    
+    if not html_files:
+        print(f"No HTML files found in {output_dir} directory.")
+        return
+    
+    print(f"Found {len(html_files)} HTML file(s) to process.")
+    
+    # Process each file
+    for html_file in html_files:
+        await process_file(html_file, generated_dir)
+    
+    print(f"\nAll files processed. Results saved to {generated_dir} directory.")
+
 if __name__ == "__main__":
     asyncio.run(main())

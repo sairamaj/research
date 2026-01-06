@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import sys
 import os
+import asyncio
 from urllib.parse import urlparse
 from web_browser import scrape_with_selenium
 
@@ -46,41 +47,94 @@ def get_output_filepath(unique_id, output_dir=OUTPUT_DIR):
 def scrape_startup(link, base_url=BASE_URL):
     """Scrape a single startup page."""
     full_url = base_url + link
-    print(f"Scraping {full_url}")
     
     unique_id = extract_startup_id_from_url(full_url)
     output_filename = get_output_filepath(unique_id)
     
+    # Check if cache exists
+    if os.path.exists(output_filename):
+        print(f"Cache found for {full_url}, skipping scrape")
+        return
+    
+    print(f"Scraping {full_url}")
     scrape_with_selenium(full_url, output_filename)
 
 
 def main():
     """Main entry point for the scraper."""
-    import shutil
-
     if len(sys.argv) < 2:
-        print("Usage: python main.py <html_file>")
+        print("Usage: python main.py <html_file> [max_links]")
         print("Please provide the path to an HTML file as a command line argument.")
+        print("Optional: max_links (default: 2)")
         sys.exit(1)
 
-    # Clean the output directory if it exists
-    if os.path.exists(OUTPUT_DIR):
-        shutil.rmtree(OUTPUT_DIR)
+    # Ensure output directory exists (don't delete to preserve cache)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     input_file = sys.argv[1]
+    max_links = int(sys.argv[2]) if len(sys.argv) > 2 else 2
+    
     with open(input_file, "r", encoding="utf-8") as fin:
         html = fin.read()
 
     startup_links = extract_startup_links(html)
 
-    # For now, only scrape the first startup
     if startup_links:
-        for link in startup_links:
+        for i, link in enumerate(startup_links[:max_links]):
             scrape_startup(link)
-            break   #for now, only scrape the first startup
     else:
         print("No startup links found in the HTML file.")
+
+    #run_extract_info_for_scraped_files()
+    merge_markdown_files()
+
+
+def run_extract_info_for_scraped_files():
+    """
+    Run the extract_info_from_content process on all HTML files in the OUTPUT_DIR directory,
+    and put the resulting markdown in the 'generated' directory.
+    """
+    from extract_info_from_content import process_file
+    html_files = [
+        os.path.join(OUTPUT_DIR, f)
+        for f in os.listdir(OUTPUT_DIR)
+        if f.endswith(".html")
+    ]
+    if not html_files:
+        print(f"No scraped html files found in {OUTPUT_DIR}")
+        return
+
+    async def batch_process():
+        for html_file in html_files:
+            await process_file(html_file, output_dir="generated")
+    asyncio.run(batch_process())
+
+
+def merge_markdown_files(output_dir="generated", summary_filename="summary.md"):
+    """
+    Merge all .md files in the output_dir into a single summary.md file.
+    """
+    md_files = [
+        f for f in os.listdir(output_dir)
+        if f.endswith(".md") and f != summary_filename
+    ]
+    if not md_files:
+        print(f"No markdown files found in {output_dir} to merge.")
+        return
+    
+    merged_content = []
+    for md_file in md_files:
+        filepath = os.path.join(output_dir, md_file)
+        with open(filepath, "r", encoding="utf-8") as fin:
+            content = fin.read()
+            # Do not add filename as a header
+            merged_content.append(f"{content}\n")
+
+    summary_path = os.path.join(output_dir, summary_filename)
+    with open(summary_path, "w", encoding="utf-8") as fout:
+        fout.write("\n\n".join(merged_content))
+
+    print(f"Merged {len(md_files)} markdown files into {summary_path}")
 
 
 if __name__ == "__main__":

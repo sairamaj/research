@@ -9,6 +9,7 @@ Extract and format the following information in Markdown:
 - Last Month Revenue
 - Last Month Profit
 - Customers
+- use brief Description to convert in to simple one line statement as Title
 
 Use Markdown headings (##), lists (-), and formatting. Do NOT use HTML tags. Output should be plain Markdown text.
 
