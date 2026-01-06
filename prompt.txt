@@ -1,12 +1,16 @@
-Here is the text from site where startup are advertised for sale. Extract the following entries and Generate Markup page
+Here is the text from site where startup are advertised for sale. Extract the following entries and generate a Markdown-formatted page (NOT HTML). Output ONLY valid Markdown syntax, no HTML tags.
+
+Extract and format the following information in Markdown:
 - Brief Description
 - Features
 - Asking price
-- TTM revenew
+- TTM Revenue
 - TTM Profit
 - Last Month Revenue
 - Last Month Profit
 - Customers
 
+Use Markdown headings (##), lists (-), and formatting. Do NOT use HTML tags. Output should be plain Markdown text.
+
 Text:
-{{text}}
+{content}

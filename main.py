@@ -78,6 +78,7 @@ def main():
     if startup_links:
         for link in startup_links:
             scrape_startup(link)
+            break   #for now, only scrape the first startup
     else:
         print("No startup links found in the HTML file.")
 
