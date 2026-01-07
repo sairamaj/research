@@ -2,7 +2,7 @@ import sys
 import os
 from url_utils import extract_startup_links
 from scraper import scrape_startups_with_delay
-from processor import run_extract_info_for_scraped_files, merge_markdown_files
+from processor import run_extract_info_for_scraped_files, merge_markdown_files, create_summary_txt
 
 BASE_URL = "https://app.acquire.com"
 OUTPUT_DIR = "output"
@@ -67,12 +67,13 @@ def main():
     else:
         print("No startup links found in the HTML file.")
 
-    run_extract_info_for_scraped_files(
-        output_dir=OUTPUT_DIR, 
-        generated_dir=GENERATED_DIR,
-        use_real_llm=args['use_real_llm']
-    )
+    # run_extract_info_for_scraped_files(
+    #     output_dir=OUTPUT_DIR, 
+    #     generated_dir=GENERATED_DIR,
+    #     use_real_llm=args['use_real_llm']
+    # )
     merge_markdown_files(output_dir=GENERATED_DIR)
+    create_summary_txt(generated_dir=GENERATED_DIR)
 
 
 if __name__ == "__main__":

@@ -16,3 +16,8 @@ Use Markdown headings (##), lists (-), and formatting. Do NOT use HTML tags. Out
 
 Text:
 {content}
+
+Generate Extra information at the end in CSV format (comma-separated, with fields containing commas properly quoted):
+Brief Description,Asking price,TTM Revenue, TTM profit, LastMonth Revenue, Customers, Selling REASONING
+
+Example format: "Brief description text", "$500,000", "$1,400,000", "$170,000", "$182,000", "1,000-5,000", "Selling reason text"
