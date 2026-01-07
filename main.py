@@ -67,11 +67,11 @@ def main():
     else:
         print("No startup links found in the HTML file.")
 
-    # run_extract_info_for_scraped_files(
-    #     output_dir=OUTPUT_DIR, 
-    #     generated_dir=GENERATED_DIR,
-    #     use_real_llm=args['use_real_llm']
-    # )
+    run_extract_info_for_scraped_files(
+        output_dir=OUTPUT_DIR, 
+        generated_dir=GENERATED_DIR,
+        use_real_llm=args['use_real_llm']
+    )
     merge_markdown_files(output_dir=GENERATED_DIR)
     create_summary_txt(generated_dir=GENERATED_DIR)
 
