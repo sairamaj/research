@@ -13,3 +13,4 @@ wheels/
 output/
 .env
 generated/
+links.txt
